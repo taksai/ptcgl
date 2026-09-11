@@ -55,7 +55,7 @@ async function load(text){
   try{
     await catalogReady;
     const parsed=parseLog(text); // Keep an existing valid review when a new input is invalid.
-    replay=parsed;raw=text;cur=0;
+    replay=parsed;raw=text;cur=replay.turns[0]?.frame ?? 0;
     $('workspace').hidden=false;$('empty').hidden=true;$('inputPane').hidden=true;$('closeInput').hidden=false;
     $('matchTitle').textContent=replay.names.join('  vs  ');
     const unsupported=replay.warnings.filter(w=>w.kind==='unsupported').length;

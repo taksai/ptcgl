@@ -1,8 +1,12 @@
 // Board structure adapted from kaggle_pokepoke_2's player.html; see PROVENANCE.md.
 export const esc = value => String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let catalog={};
-export function setCatalog(data){catalog=data;}
-export function reference(c){return catalog[c.name]?.[0];}
+let catalog=new Map();
+const basicEnergyTypes={Grass:'G',Fire:'R',Water:'W',Lightning:'L',Psychic:'P',Fighting:'F',Darkness:'D',Metal:'M'};
+function normalizedName(name){
+  return name.replace(/[’‘]/g,"'").trim().replace(/^Basic (Grass|Fire|Water|Lightning|Psychic|Fighting|Darkness|Metal) Energy$/,(_,type)=>`Basic {${basicEnergyTypes[type]}} Energy`);
+}
+export function setCatalog(data){catalog=new Map(Object.entries(data).map(([name,cards])=>[normalizedName(name),cards]));}
+export function reference(c){return catalog.get(normalizedName(c.name))?.[0];}
 export function cardName(c){return reference(c)?.jp || c.name;}
 const el=(tag,cls,text)=>{const d=document.createElement(tag);d.className=cls;if(text!==undefined)d.textContent=text;return d;};
 const energyLabels={Grass:'草',Fire:'炎',Water:'水',Lightning:'雷',Psychic:'超',Fighting:'闘',Darkness:'悪',Metal:'鋼'};
