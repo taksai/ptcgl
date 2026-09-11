@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="PTCGLの対戦ログを貼り付けて、盤面とターンごとの行動を振り返るローカル分析ツール。">
+<title>PTCGL Log Analyzer</title>
+<link rel="stylesheet" href="src/board.css"><link rel="stylesheet" href="src/app.css">
+</head>
+<body>
+<header><div class="brand"><span class="brand-mark">◉</span><h1>PTCGL <span>Log Analyzer</span></h1></div><span class="local-badge">ローカル解析</span><div class="filebar"><button id="sample">サンプルログ</button><label class="file-label">テキストを開く<input id="file" type="file" accept=".txt,.log,text/plain"></label><button id="openInput" class="primary">ログを貼り付け</button></div></header>
+<main>
+<section id="inputPane" class="input-pane">
+  <div class="input-heading"><div><h2>対戦ログを読み込む</h2><p>PTCGLの英語ログを、Setupから勝敗まで貼り付けてください。</p></div><button id="closeInput" hidden aria-label="貼り付け欄を閉じる">×</button></div>
+  <label for="logInput" class="sr-only">PTCGLの対戦ログ</label><textarea id="logInput" placeholder="Setup&#10;Player1 chose tails for the opening coin flip.&#10;…" spellcheck="false"></textarea>
+  <div class="input-actions"><span>ログはこのブラウザ内で処理します。</span><button id="analyze" class="primary">ログを分析する →</button></div>
+</section>
+<div id="error" role="alert" hidden></div>
+<section id="empty" class="empty-state"><span>◉</span><h2>盤面を戻して、1手ずつ振り返る</h2><p>ログを読み込むと、盤面・手札・サイドと行動履歴を表示します。<br>「サンプルログ」から、サンプルの対戦をすぐに開けます。</p></section>
+<div id="workspace" hidden>
+  <section class="matchbar"><div><span class="eyebrow">MATCH REVIEW</span><h2 id="matchTitle"></h2><p id="matchMeta"></p></div><label>手前のプレイヤー <select id="perspective"></select></label></section>
+  <div class="workspace-grid">
+    <section class="pane timeline-pane"><h2>行動ログ <span id="eventCount"></span></h2><div class="filters"><label class="sr-only" for="search">ログを検索</label><input id="search" type="search" placeholder="カード・行動を検索"><label class="sr-only" for="kind">行動の種類</label><select id="kind"><option value="all">すべての行動</option><option value="turn">ターン開始</option><option value="attack">ワザ</option><option value="prize">サイド取得</option><option value="ko">きぜつ</option><option value="warning">要確認</option></select></div><div id="timeline" class="timeline"></div></section>
+    <div class="board-column"><section class="pane" id="boardPane"><h2><span>盤面</span><span id="turnLabel"></span></h2><div id="boardBody" class="body"></div><div class="board-note">「?」は個体の対応が仮置き。ダメージはログの累計です。券面は同名カードの参考表示です。</div></section><section class="pane event-pane"><h2>選択中の行動 <span id="lineLabel"></span></h2><div class="body"><p id="eventLabel"></p><pre id="rawEvent"></pre><div id="eventWarning"></div></div></section></div>
+    <aside class="pane analysis-pane"><h2>対戦全体の集計</h2><div class="body"><div id="stats"></div><p class="fine-print">ワザのダメージは原文値（オーバーキルを含む）。ダメカンとは別集計です。</p><h3>ターンごとの推移</h3><p class="fine-print">クリックでそのターンへ移動</p><div id="turns"></div><h3>カードの使用回数</h3><div id="usage"></div><details id="warnings"><summary></summary><div id="warningList"></div></details><details><summary>選択中の盤面 JSON</summary><pre id="jsonState"></pre><button id="download">分析JSONを保存</button></details></div></aside>
+  </div>
+  <section class="playback" aria-label="リプレイ操作"><button id="first" title="最初へ">|◀</button><button id="prev" title="前の行動（←）">◀</button><button id="play" class="primary">再生</button><button id="next" title="次の行動（→）">▶</button><button id="last" title="最後へ">▶|</button><input id="slider" type="range" min="0" max="0" value="0" aria-label="再生位置"><span id="stepLabel"></span><label>速度 <select id="speed"><option value="1500">0.5×</option><option value="750" selected>1×</option><option value="375">2×</option><option value="150">5×</option></select></label></section>
+</div>
+</main>
+<dialog id="cardDialog"><button id="closeCard" aria-label="カード詳細を閉じる">×</button><div id="cardDetail"></div></dialog>
+<script type="module" src="src/app.js"></script>
+</body></html>

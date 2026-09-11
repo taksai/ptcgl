@@ -1,0 +1,10 @@
+.DS_Store
+node_modules/
+assets/*
+!assets/.gitkeep
+.env*
+logs/
+coverage/
+# User-supplied battle log and its private regression checks stay on this machine.
+examples/sample.txt
+tests/local-log.test.js

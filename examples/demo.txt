@@ -1,0 +1,36 @@
+Setup
+Player A chose heads for the opening coin flip.
+Player A won the coin toss.
+Player A decided to go second.
+Player B drew 7 cards for the opening hand.
+Player A drew 7 cards for the opening hand.
+- 7 drawn cards.
+   • (demo_1) Demo Pokémon A, (demo_2) Demo Pokémon B, (mee_2) Basic Fire Energy, (demo_3) Demo Item, (demo_4) Demo Evolution, (mee_2) Basic Fire Energy, (demo_3) Demo Item
+Player B played (demo_5) Demo Pokémon C to the Active Spot.
+Player A played (demo_1) Demo Pokémon A to the Active Spot.
+
+Player B's Turn
+Player B drew a card.
+Player B attached (mee_1) Basic Grass Energy to (demo_5) Demo Pokémon C in the Active Spot.
+Player B ended their turn.
+
+Player A's Turn
+Player A drew (mee_2) Basic Fire Energy.
+Player A played (demo_2) Demo Pokémon B to the Bench.
+Player A attached (mee_2) Basic Fire Energy to (demo_1) Demo Pokémon A in the Active Spot.
+Player A's (demo_1) Demo Pokémon A used Demo Attack on Player B’s (demo_5) Demo Pokémon C for 20 damage.
+
+Player B's Turn
+Player B drew a card.
+Player B's (demo_5) Demo Pokémon C used Demo Attack on Player A’s (demo_1) Demo Pokémon A for 30 damage.
+
+Player A's Turn
+Player A drew (demo_3) Demo Item.
+Player A evolved (demo_1) Demo Pokémon A to (demo_4) Demo Evolution in the Active Spot.
+Player A's (demo_4) Demo Evolution used Demo Attack on Player B’s (demo_5) Demo Pokémon C for 100 damage.
+Player B's (demo_5) Demo Pokémon C was Knocked Out!
+- 1 cards were discarded from Player B's (demo_5) Demo Pokémon C.
+   • (mee_1) Basic Grass Energy
+Player A took a Prize card.
+A card was added to Player A's hand.
+Player A wins.

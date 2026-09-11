@@ -1,0 +1,14 @@
+{
+  "name": "ptcgl",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local Pokémon TCG Live battle log analyzer and replay viewer",
+  "scripts": {
+    "start": "node scripts/server.mjs",
+    "dev": "node scripts/server.mjs",
+    "test": "node --test",
+    "check": "node --check src/parser.js && node --check src/app.js && node --check src/board.js"
+  },
+  "engines": { "node": ">=20" }
+}

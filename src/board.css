@@ -1,0 +1,201 @@
+/* Adapted from kaggle_pokepoke_2/tools/visualizer/player.html. See PROVENANCE.md. */
+
+  :root {
+    --bg:#0f1420; --panel:#182031; --panel2:#1e2740; --line:#2c3855;
+    --fg:#e6ecfb; --muted:#8ea0c4; --accent:#4da3ff; --p0:#4da3ff; --p1:#ff7a6b;
+    --good:#54d18c; --warn:#ffca55; --card:#232d47;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
+         background:var(--bg); color:var(--fg); font-size:13px; }
+  header { padding:8px 12px; background:var(--panel); border-bottom:1px solid var(--line);
+           display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+  header h1 { font-size:15px; margin:0; font-weight:600; }
+  header .meta { color:var(--muted); font-size:12px; display:flex; gap:12px; flex-wrap:wrap; }
+  header .meta b { color:var(--fg); font-weight:600; }
+  .filebar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-left:auto; }
+  .filebar label { font-size:11px; color:var(--muted); cursor:pointer; padding:4px 8px;
+                   border:1px solid var(--line); border-radius:6px; background:var(--panel2); }
+  .filebar input[type=file] { display:none; }
+  #herozBtn { font-size:11px; cursor:pointer; padding:4px 10px; border-radius:6px;
+              background:rgba(84,209,140,.16); color:var(--good); border:1px solid var(--good); }
+  #herozBtn:hover { background:rgba(84,209,140,.28); }
+  .grid { display:grid; grid-template-columns:270px minmax(0,1fr) 300px; gap:8px; padding:8px; height:calc(100vh - 108px); }
+  .col { display:flex; flex-direction:column; gap:8px; min-height:0; }
+  .pane { background:var(--panel); border:1px solid var(--line); border-radius:8px; display:flex;
+          flex-direction:column; min-height:0; overflow:hidden; }
+  .pane > h2 { margin:0; font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+               color:var(--muted); padding:7px 10px; border-bottom:1px solid var(--line); background:var(--panel2); }
+  /* h2 に操作ボタンを載せる場合だけ flex 行にする(他の pane の見た目は不変) */
+  .pane > h2.withbtn { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .panebtn { background:var(--panel); color:var(--fg); border:1px solid var(--line); border-radius:5px;
+             font-size:10px; letter-spacing:.04em; padding:2px 8px; cursor:pointer; text-transform:none; }
+  .panebtn:hover { background:var(--line); }
+  .panebtn.ok { color:#7ee08a; border-color:#7ee08a; }
+  .panebtn.ng { color:#ff8a8a; border-color:#ff8a8a; }
+  .pane > .body { overflow:auto; padding:8px 10px; min-height:0; }
+  #logPane .body { font-size:12px; line-height:1.55; }
+  .logrow { padding:1px 0; border-bottom:1px solid rgba(255,255,255,.04); }
+  .logrow .pi { display:inline-block; width:14px; text-align:center; border-radius:3px; font-size:10px;
+                margin-right:5px; font-weight:700; }
+  .pi0 { background:rgba(77,163,255,.22); color:var(--p0); }
+  .pi1 { background:rgba(255,122,107,.22); color:var(--p1); }
+  .logrow.now { background:rgba(255,202,85,.10); }
+  #obsPane .body pre { margin:0; font-size:11px; line-height:1.4; white-space:pre-wrap; word-break:break-word;
+                       font-family:ui-monospace,SFMono-Regular,Menlo,monospace; color:#cdd8f5; }
+  #selPane .body, #actPane .body { font-size:12px; }
+  .kv { color:var(--muted); } .kv b{ color:var(--fg); }
+  .opt { padding:2px 6px; border-radius:4px; margin:2px 0; background:var(--panel2); border:1px solid var(--line); }
+  .opt.sel { background:rgba(84,209,140,.16); border-color:var(--good); }
+  /* board */
+  #boardPane .body { padding:6px; }
+  .badge { font-size:11px; color:var(--muted); }
+  .badge b { color:var(--fg); }
+  .status { font-size:10px; padding:1px 5px; border-radius:4px; background:rgba(255,122,107,.25);
+            color:#7a1d13; font-weight:700; margin-right:3px; }
+  .card { width:78px; min-height:104px; border-radius:7px; border:1px solid var(--line);
+          background:var(--card); position:relative; overflow:hidden; display:flex; flex-direction:column;
+          justify-content:flex-end; background-size:cover; background-position:center; }
+  .card.mini { width:52px; min-height:70px; }
+  .card.big { width:100px; min-height:134px; }
+  .card .nm { font-size:9px; line-height:1.1; padding:2px 3px; background:rgba(8,12,22,.78); }
+  .card .en { position:absolute; top:3px; left:3px; z-index:3; max-width:calc(100% - 6px);
+              display:flex; flex-wrap:wrap; align-items:center; gap:3px; padding:3px 4px;
+              border:1px solid rgba(255,255,255,.75); border-radius:6px;
+              background:rgba(5,9,16,.92); box-shadow:0 1px 4px rgba(0,0,0,.7);
+              font-size:10px; line-height:1; font-weight:800; }
+  .card.big .en { font-size:11px; padding:3px 5px; }
+  .card .en-count { color:#fff; padding-right:4px; margin-right:1px;
+                    border-right:1px solid rgba(255,255,255,.45); white-space:nowrap; }
+  .card .en-icon { position:relative; width:25px; height:25px; flex:0 0 25px;
+                   border:1px solid rgba(255,255,255,.9); border-radius:50%;
+                   background-color:#273147; background-repeat:no-repeat;
+                   background-position:center 49%; background-size:165% auto;
+                   box-shadow:0 1px 3px #000; overflow:visible; }
+  .card.big .en-icon { width:28px; height:28px; flex-basis:28px; }
+  .card .en-fallback { display:flex; align-items:center; justify-content:center;
+                       color:#fff; text-shadow:0 1px 2px #000; }
+  .card .en-mult { position:absolute; right:-5px; top:-6px; min-width:14px; height:14px;
+                   padding:1px 3px; border-radius:8px; background:#050910; color:#fff;
+                   border:1px solid #fff; font-size:9px; line-height:10px; text-align:center; }
+  .card.has-img .nm, .card.has-img .en { text-shadow:0 1px 2px #000; }
+  .card .tool { position:absolute; bottom:16px; left:2px; font-size:8px; color:var(--warn); }
+  .card.fresh { outline:2px solid var(--good); outline-offset:-2px; }
+  .card.back { background:repeating-linear-gradient(45deg,#243a6b 0 6px,#1b2c53 6px 12px); border-color:#4a5f96; }
+  /* HEROZ-style field */
+  .fieldbar { font-size:11px; color:var(--muted); margin-bottom:5px; }
+  .fieldbar b { color:var(--fg); }
+  .field { position:relative; background:#8ec47b; border-radius:10px; padding:8px; display:grid; gap:5px;
+           grid-template-columns:150px minmax(360px,1fr) 150px;
+           grid-template-rows:auto auto auto minmax(96px,1fr) minmax(96px,1fr) auto auto auto;
+           grid-template-areas:
+             "ohand  ohand  ohand"
+             "opanel obench oprize"
+             "opanel oname  oprize"
+             "opanel center oprize"
+             "mprize center mpanel"
+             "mprize mname  mpanel"
+             "mprize mbench mpanel"
+             "mhand  mhand  mhand";
+           min-width:680px; max-width:1080px; margin:0 auto; }
+  .fieldframe { grid-row:2/8; grid-column:1/4; border:3px solid rgba(255,255,255,.85);
+                border-radius:8px; pointer-events:none; z-index:0; }
+  .fa { position:relative; z-index:1; min-width:0; }
+  .fieldname { text-align:center; font-weight:800; font-size:14px; text-shadow:0 1px 2px rgba(255,255,255,.55); }
+  .fnote { font-size:11px; color:#1d3312; text-align:center; padding:4px; }
+  .hand { display:flex; gap:4px; justify-content:center; flex-wrap:wrap; align-items:flex-start; }
+  .bench { display:flex; gap:6px; justify-content:center; align-items:flex-start; }
+  .slot { width:82px; height:110px; border:2px dashed rgba(255,255,255,.9); border-radius:8px;
+          display:flex; align-items:center; justify-content:center; }
+  .slot.filled { border-color:transparent; }
+  .prize { display:grid; grid-template-columns:repeat(2,52px); gap:4px;
+           justify-content:center; align-content:center; }
+  .panel { align-self:center; padding:4px 6px; }
+  .panel .pname { font-size:13px; font-weight:800; text-shadow:0 1px 2px rgba(255,255,255,.5); }
+  .panel .porder { display:inline-block; margin:3px 0; padding:0 5px; border-radius:3px;
+                   background:#ffe14d; color:#3a3300; font-weight:800; font-size:15px; }
+  .panel .ptime { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px; color:#1b2a1b; }
+  .panel .pnum { font-size:18px; font-weight:700; color:#152309; line-height:1.25; }
+  .panel .pnum.small { font-size:11px; font-weight:600; color:#2c4020; }
+  .panel .pturn { font-size:11px; font-weight:800; color:#8a4b00; }
+  .panel.turn { background:rgba(255,225,77,.22); border-radius:6px; }
+  .center { position:relative; display:flex; align-items:center; justify-content:center; }
+  .pokeball { position:absolute; width:210px; height:210px; border:7px solid rgba(255,255,255,.92);
+              border-radius:50%; z-index:0; }
+  .ball-h { position:absolute; top:50%; left:-60px; right:-60px; height:7px;
+            background:rgba(255,255,255,.92); transform:translateY(-50%); }
+  .ball-v { position:absolute; left:50%; top:-40px; bottom:-40px; width:7px;
+            background:rgba(255,255,255,.92); transform:translateX(-50%); }
+  .ball-core { position:absolute; left:50%; top:50%; width:44px; height:44px; margin:-22px 0 0 -22px;
+               border:7px solid #fff; border-radius:50%; background:#8ec47b; }
+  .actives { position:relative; z-index:2; display:flex; gap:34px; align-items:center; justify-content:center; }
+  .act { display:flex; gap:6px; }
+  .empty-act { width:100px; height:134px; }
+  .monslot { position:relative; }
+  .hpbadge { position:absolute; right:-16px; top:-14px; z-index:5; font-size:20px; font-weight:800; color:#fff;
+             text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000; }
+  .hpbadge.hurt { color:#ffd24d; }
+  .stadium { position:absolute; left:2px; top:2px; z-index:2; text-align:center; }
+  .stadium .stlabel { font-size:10px; font-weight:800; color:#1d3312; }
+  .stadium .slot { width:56px; height:76px; }
+  .en-C{color:#c9c9c9}.en-G{color:#7ac74c}.en-R{color:#ff7043}.en-W{color:#4fc3f7}
+  .en-L{color:#ffd54f}.en-P{color:#ce93d8}.en-F{color:#c98a5e}.en-D{color:#9575cd}
+  .en-M{color:#b0bec5}.en-N{color:#d4b34a}.en-TR{color:#e57373}.en-x{color:#eee}
+  .empty { font-size:10px; color:var(--muted); padding:10px; border:1px dashed var(--line); border-radius:6px; }
+  footer { padding:8px 12px; background:var(--panel); border-top:1px solid var(--line);
+           display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  footer button { background:var(--panel2); color:var(--fg); border:1px solid var(--line); border-radius:6px;
+                  padding:5px 11px; cursor:pointer; font-size:13px; }
+  footer button:hover { border-color:var(--accent); }
+  footer button.play { background:var(--accent); border-color:var(--accent); color:#04101f; font-weight:700; }
+  #slider { flex:1; min-width:200px; }
+  .stepnum { font-variant-numeric:tabular-nums; color:var(--muted); }
+  .stepnum b { color:var(--fg); }
+  select.speed { background:var(--panel2); color:var(--fg); border:1px solid var(--line); border-radius:6px; padding:4px; }
+  .hint { color:var(--muted); font-size:12px; padding:40px; text-align:center; }
+  .result-tag { font-weight:700; }
+
+  /* ── スマホ/タブレット: 3カラムのままだと Board 列が 0px に潰れて
+     盤面が一切見えなくなる(実測 375px 幅で grid=270px/0px/300px・
+     文書幅 594px で横スクロール)。縦積みにして Board を最上段へ。 */
+  @media (max-width: 900px) {
+    .grid { grid-template-columns:1fr; height:auto; }
+    /* Board を先頭に持ってくる(HTML の順序は Log → Board → Obs) */
+    .col:nth-child(2) { order:-1; }
+    .pane { max-height:none; }
+    /* 盤面は縮小して収める(下の fitBoard)ので min-height は付けない —
+       付けると縮小後の実高との差が丸ごと死に余白になる */
+    #boardPane .body { min-height:0; }
+    /* サイドの各ペインは開閉なしで見える範囲に収める */
+    #logPane .body, #obsPane .body, #selPane .body, #actPane .body { max-height:38vh; }
+    footer { position:sticky; bottom:0; z-index:5; }
+    #slider { min-width:120px; }
+    /* 🔴 `.field` の min-width:680px が **ペイン自体を押し広げ**、
+       ページ全体が横スクロールしていた(実測 375px 幅で文書幅 708px)。
+       grid/col/pane を画面幅に縛り、はみ出しは Board の中だけで吸収する。 */
+    .grid, .col, .pane { min-width:0; max-width:100vw; }
+    .field { min-width:660px; }        /* 盤面の下限は保つ(潰すと崩れる) */
+    /* 🔴 スマホ実機(375px)では 660px の盤面が横スクロール必須になり、
+       相手ベンチ/サイドを見るたびに左右へパンする羽目になっていた。
+       **縮小して全体を1画面に収める**(JS が --board-scale を実測で設定。
+       transform なのでレイアウトは 660px のまま = 内部座標系を壊さない)。
+       高さは scaleY 分だけ縮むので、余白を殺すために親側を実高に合わせる。 */
+    #boardPane .body { overflow:hidden; }
+    .field-fit { transform:scale(var(--board-scale,1)); transform-origin:top left; }
+    .field-fit-wrap { overflow:hidden; }
+  }
+  /* 盤面は横に潰さずコンテナ内でスクロールさせる(表・盤面が広い時) */
+  #boardPane .body { overflow:auto; }
+  #tip { position:fixed; z-index:50; display:none; pointer-events:none;
+         background:rgba(10,15,26,.97); border:1px solid var(--accent); border-radius:8px;
+         padding:8px 10px; font-size:11px; line-height:1.5; box-shadow:0 6px 22px rgba(0,0,0,.55); }
+  #tip .tip-wrap { display:flex; gap:10px; align-items:flex-start; }
+  #tip .tip-img { display:none; width:230px; max-width:26vw; max-height:78vh;
+                  object-fit:contain; border-radius:5px; }
+  #tip .tip-txt { max-width:330px; min-width:0; }
+  #tip .tip-txt:empty { display:none; }
+  #tip .tip-nm { font-weight:700; font-size:12px; margin-bottom:4px; }
+  #tip .tip-sec { margin-top:5px; padding-top:5px; border-top:1px solid var(--line); }
+  #tip .tip-hd { color:var(--warn); font-weight:700; }
+  #tip .tip-hd .tip-kind { color:var(--muted); font-weight:400; margin-right:4px; }
+  #tip .tip-tx { color:#cdd8f5; white-space:pre-wrap; }
