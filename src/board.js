@@ -1,6 +1,17 @@
 // Board structure adapted from kaggle_pokepoke_2's player.html; see PROVENANCE.md.
 export const esc = value => String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let catalog=new Map();
+let catalog=new Map(),localImages=null;
+const imageUrls=new Map();
+export function setLocalImages(files){
+  for(const url of imageUrls.values())URL.revokeObjectURL(url);
+  imageUrls.clear();localImages=files;
+}
+function imageUrl(r){
+  if(!localImages)return `assets/cards_jp/${encodeURIComponent(r.id)}.jpg`;
+  if(!localImages.has(r.id))return null;
+  if(!imageUrls.has(r.id))imageUrls.set(r.id,URL.createObjectURL(localImages.get(r.id)));
+  return imageUrls.get(r.id);
+}
 const basicEnergyTypes={Grass:'G',Fire:'R',Water:'W',Lightning:'L',Psychic:'P',Fighting:'F',Darkness:'D',Metal:'M'};
 function normalizedName(name){
   return name.replace(/[’‘]/g,"'").trim().replace(/^Basic (Grass|Fire|Water|Lightning|Psychic|Fighting|Darkness|Metal) Energy$/,(_,type)=>`Basic {${basicEnergyTypes[type]}} Energy`);
@@ -15,7 +26,7 @@ export function cardDetail(c){
   const details=el('div','card-detail');
   details.innerHTML=`<h2>${esc(cardName(c))}</h2><p>${esc(c.name)} · ${esc(c.id)}</p>`;
   if(r){
-    const im=el('img','detail-image');im.src=`assets/cards_jp/${encodeURIComponent(r.id)}.jpg`;im.alt=r.jp;im.onerror=()=>im.remove();details.append(im);
+    const im=el('img','detail-image');const url=imageUrl(r);if(url){im.src=url;im.alt=r.jp;im.onerror=()=>im.remove();details.append(im);}
     const text=el('div','detail-text');text.innerHTML=`<p class="reference-note">同名カードを照合した参考情報。セット・券面の一致は保証されません。</p>${r.hp?`<p>参考HP ${r.hp}（効果による補正なし）</p>`:''}`;
     for(const [name,description] of [...r.abilities,...r.attacks]){const h=el('h3','',name),p=el('p','',description);text.append(h,p);} details.append(text);
   }else details.append(el('p','','カード辞書にないカードです。ログに記載された名前で表示しています。'));
@@ -27,7 +38,7 @@ export function cardDetail(c){
 function plainCard(c,size='',open){
   const d=el('button','card '+size);d.type='button';d.title=`${cardName(c)} (${c.id}) — クリックで詳細`;
   const r=reference(c);
-  if(r){const im=new Image();im.onload=()=>{d.style.backgroundImage=`url("${im.src}")`;d.classList.add('has-img');};im.src=`assets/cards_jp/${encodeURIComponent(r.id)}.jpg`;}
+  if(r){const url=imageUrl(r);if(url){const im=new Image();im.onload=()=>{d.style.backgroundImage=`url("${im.src}")`;d.classList.add('has-img');};im.src=url;}}
   d.append(el('span','nm',cardName(c)));d.onclick=()=>open(c);return d;
 }
 function monSlot(mon,size,open){

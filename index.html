@@ -9,6 +9,7 @@
 <body>
 <header><div class="brand"><span class="brand-mark">◉</span><h1>PTCGL <span>Log Analyzer</span></h1></div><span class="local-badge">ローカル解析</span><div class="filebar"><button id="sample">サンプルログ</button><label class="file-label">テキストを開く<input id="file" type="file" accept=".txt,.log,text/plain"></label><button id="openInput" class="primary">ログを貼り付け</button></div></header>
 <main>
+<div class="assetbar"><label class="file-label">カード画像を読み込む<input id="assetFolder" type="file" webkitdirectory multiple hidden></label><span id="assetStatus" role="status">画像は手元の assets フォルダから読み込めます。サーバーには送信しません。</span></div>
 <section id="inputPane" class="input-pane">
   <div class="input-heading"><div><h2>対戦ログを読み込む</h2><p>PTCGLの英語ログを、Setupから勝敗まで貼り付けてください。</p></div><button id="closeInput" hidden aria-label="貼り付け欄を閉じる">×</button></div>
   <label for="logInput" class="sr-only">PTCGLの対戦ログ</label><textarea id="logInput" placeholder="Setup&#10;Player1 chose tails for the opening coin flip.&#10;…" spellcheck="false"></textarea>

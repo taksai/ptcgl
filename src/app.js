@@ -1,5 +1,7 @@
 import {parseLog,summarizeTurns} from './parser.js';
-import {esc,setCatalog,cardName,cardDetail,renderBoard} from './board.js';
+import {esc,setCatalog,setLocalImages,cardName,cardDetail,renderBoard} from './board.js';
+import {readLocalAssets} from './local-assets.js';
+const published=!!document.querySelector('meta[name="ptcgl-published"]');
 const $=id=>document.getElementById(id);
 let replay=null,cur=0,timer=null,raw='',catalogReady=Promise.resolve();
 const typeNames={setup:'セットアップ',turn:'ターン開始',play:'カードを使う',ability:'特性・効果',evolve:'進化',attach:'エネルギー・どうぐ',attack:'ワザ',counters:'ダメカン',ko:'きぜつ',prize:'サイド取得',draw:'手札に加える',search:'山札から場に出す',shuffle:'山札に戻す',discard:'トラッシュ',recover:'回収',retreat:'にげる',promote:'バトル場へ',coin:'コイン',result:'対戦終了',info:'進行',other:'未対応'};
@@ -67,7 +69,7 @@ async function load(text){
 $('analyze').onclick=()=>load($('logInput').value);
 $('openInput').onclick=()=>{$('inputPane').hidden=false;$('logInput').focus();};
 $('closeInput').onclick=()=>{$('inputPane').hidden=true;};
-$('sample').onclick=async()=>{try{let res=await fetch('examples/sample.txt');if(!res.ok)res=await fetch('examples/demo.txt');if(!res.ok)throw Error('サンプルを読み込めませんでした。');const text=await res.text();$('logInput').value=text;await load(text);}catch(e){error(e.message);}};
+$('sample').onclick=async()=>{try{let res=await fetch(published?'examples/demo.txt':'examples/sample.txt');if(!res.ok)res=await fetch('examples/demo.txt');if(!res.ok)throw Error('サンプルを読み込めませんでした。');const text=await res.text();$('logInput').value=text;await load(text);}catch(e){error(e.message);}};
 $('file').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>500000)throw Error('ログは500 KB以内で読み込んでください。');const text=await file.text();$('logInput').value=text;await load(text);}catch(e){error(e.message);}finally{e.target.value='';}};
 $('perspective').onchange=()=>render();$('slider').oninput=e=>goto(Number(e.target.value));
 $('first').onclick=()=>goto(0);$('last').onclick=()=>goto(replay.frames.length-1);$('prev').onclick=()=>goto(cur-1);$('next').onclick=()=>goto(cur+1);$('play').onclick=start;
@@ -75,5 +77,18 @@ $('search').oninput=()=>{if(replay)renderTimeline();};$('kind').onchange=()=>{if
 $('closeCard').onclick=()=>$('cardDialog').close();$('cardDialog').addEventListener('click',e=>{if(e.target===$('cardDialog'))$('cardDialog').close();});
 $('download').onclick=()=>{const blob=new Blob([JSON.stringify({...replay,raw},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='ptcgl-analysis.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 document.addEventListener('keydown',e=>{if(!replay||e.target.closest('input,textarea,select,button,summary,[contenteditable]')||$('cardDialog').open)return;if(e.key==='ArrowLeft'){e.preventDefault();goto(cur-1);}if(e.key==='ArrowRight'){e.preventDefault();goto(cur+1);}if(e.code==='Space'){e.preventDefault();start();}});
-catalogReady=fetch('assets/catalog.json').then(r=>r.ok?r.json():null).then(data=>{if(data)setCatalog(data);}).catch(()=>{});
+catalogReady=fetch('assets/catalog.json').then(r=>r.ok?r.json():null).then(data=>{if(data){setCatalog(data);if(Object.keys(data).length)$('assetStatus').textContent='日本語カード画像を読み込み済み。カードをクリックすると拡大します。';}}).catch(()=>{});
 if(new URLSearchParams(location.search).get('sample')==='1')$('sample').click();
+
+$('assetFolder').onchange=async e=>{
+  const files=e.target.files;if(!files.length)return;
+  try{
+    await catalogReady;
+    const assets=await readLocalAssets(files);
+    setCatalog(assets.catalog);setLocalImages(assets.images);
+    $('cardDialog').close();
+    $('assetStatus').textContent=`カード画像 ${assets.images.size}枚を読み込みました（このページを開いている間のみ有効）。`;
+    if(replay){renderAnalysis();render();}error('');
+  }catch(e){error(e.message||'画像フォルダを読み込めませんでした。');}
+  finally{e.target.value='';}
+};

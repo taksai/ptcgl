@@ -8,7 +8,10 @@
     "start": "node scripts/server.mjs",
     "dev": "node scripts/server.mjs",
     "test": "node --test",
-    "check": "node --check src/parser.js && node --check src/app.js && node --check src/board.js"
+    "check": "node --check src/parser.js && node --check src/app.js && node --check src/board.js && node --check src/local-assets.js",
+    "build": "node scripts/build-pages.mjs"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  }
 }
