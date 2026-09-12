@@ -1,5 +1,7 @@
 import {parseLog,summarizeTurns} from './parser.js';
 import {esc,setCatalog,setLocalImages,cardName,cardDetail,renderBoard} from './board.js';
+import {setJapaneseIndex,japaneseMove} from './remote-cards.js';
+import {japaneseLog} from './japanese-log.js';
 import {readLocalAssets} from './local-assets.js';
 const published=!!document.querySelector('meta[name="ptcgl-published"]');
 const $=id=>document.getElementById(id);
@@ -19,10 +21,10 @@ function goto(index,pause=true){if(!replay)return;if(pause)stop();cur=Math.max(0
 function render(){
   const fr=replay.frames[cur],e=fr.event;
   renderBoard($('boardBody'),fr.current,Number($('perspective').value),openCard);
-  $('turnLabel').textContent=e.turn?`TURN ${e.turn} · ${replay.names[fr.current.yourIndex]}`:'SETUP';
+  $('turnLabel').textContent=e.turn?`ターン ${e.turn} · ${replay.names[fr.current.yourIndex]}`:'準備';
   $('slider').value=cur;$('stepLabel').textContent=`${cur+1} / ${replay.frames.length}`;
   $('prev').disabled=$('first').disabled=cur===0;$('next').disabled=$('last').disabled=cur===replay.frames.length-1;
-  $('lineLabel').textContent=`原文 ${e.line}行目`;$('eventLabel').textContent=typeNames[e.type]||e.type;$('rawEvent').textContent=e.raw;
+  $('lineLabel').textContent=`原文 ${e.line}行目`;$('eventLabel').textContent=japaneseLog(e,replay.names);$('rawEvent').textContent=e.raw;
   $('eventWarning').replaceChildren(...fr.warnings.map(w=>{const p=document.createElement('p');p.textContent='⚠ '+w.message;return p;}));
   $('jsonState').textContent=JSON.stringify(fr.current,null,2);
   document.querySelectorAll('.event-row.current').forEach(n=>n.classList.remove('current'));
@@ -33,10 +35,11 @@ function renderTimeline(){
   const query=$('search').value.toLowerCase(),kind=$('kind').value,fragment=document.createDocumentFragment();let count=0;
   replay.frames.forEach((fr,i)=>{
     const e=fr.event;
-    if(query&&!e.raw.toLowerCase().includes(query))return;
+    const translated=japaneseLog(e,replay.names);
+    if(query&&!(e.raw+' '+translated).toLowerCase().includes(query))return;
     if(kind==='warning'?!fr.warnings.length:kind!=='all'&&kind!==e.type)return;
     const button=document.createElement('button');button.className='event-row'+(e.type==='turn'?' turn-row':'')+(fr.warnings.length?' flagged':'')+(i===cur?' current':'');button.dataset.frame=i;
-    button.innerHTML=`<span class="event-meta">${e.line}行 · ${esc(typeNames[e.type])}${fr.warnings.length?' · ⚠':''}</span>${esc(e.text)}`;button.onclick=()=>goto(i);fragment.append(button);count++;
+    button.innerHTML=`<span class="event-meta">${e.line}行 · ${esc(typeNames[e.type])}${fr.warnings.length?' · ⚠':''}</span>${esc(translated)}`;button.onclick=()=>goto(i);fragment.append(button);count++;
   });
   if(!count){const p=document.createElement('p');p.className='fine-print';p.textContent='一致する行動はありません。';fragment.append(p);}
   $('timeline').replaceChildren(fragment);$('eventCount').textContent=`${count}件`;
@@ -44,9 +47,9 @@ function renderTimeline(){
 function jumpTo(index){$('search').value='';$('kind').value='all';renderTimeline();goto(index);}
 function renderAnalysis(){
   const final=replay.frames.at(-1).current;
-  $('stats').innerHTML=final.players.map(p=>`<section class="stat-player"><h3>${esc(p.name)}${p.name===replay.winner?' · WIN':''}</h3><div class="stat-grid"><div><b>${p.stats.prizes}</b><span>取得サイド</span></div><div><b>${p.stats.damage}</b><span>ワザダメージ</span></div><div><b>${p.stats.knockouts}</b><span>きぜつ獲得</span></div></div><div class="stat-extra">残りサイド ${p.prizeCount??'?'} · ダメカン ${p.stats.counters}<br>コイン 表 ${p.stats.heads} / 裏 ${p.stats.tails}</div></section>`).join('');
+  $('stats').innerHTML=final.players.map(p=>`<section class="stat-player"><h3>${esc(p.name)}${p.name===replay.winner?' · 勝利':''}</h3><div class="stat-grid"><div><b>${p.stats.prizes}</b><span>取得サイド</span></div><div><b>${p.stats.damage}</b><span>ワザダメージ</span></div><div><b>${p.stats.knockouts}</b><span>きぜつ獲得</span></div></div><div class="stat-extra">残りサイド ${p.prizeCount??'?'} · ダメカン ${p.stats.counters}<br>コイン 表 ${p.stats.heads} / 裏 ${p.stats.tails}</div></section>`).join('');
   const turns=summarizeTurns(replay),max=Math.max(1,...turns.map(t=>t.damage));
-  $('turns').replaceChildren(...turns.map(t=>{const b=document.createElement('button');b.className='turn-row-btn';b.innerHTML=`<span>${esc(replay.names[t.player])} · ${t.number}ターン</span><span>${t.damage} dmg / サイド ${t.prizes}</span><span class="damage-track"><span class="damage-fill" style="width:${t.damage/max*100}%"></span></span>`;b.onclick=()=>jumpTo(t.frame);return b;}));
+  $('turns').replaceChildren(...turns.map(t=>{const b=document.createElement('button');b.className='turn-row-btn';b.innerHTML=`<span>${esc(replay.names[t.player])} · ${t.number}ターン</span><span>${t.damage} ダメージ / サイド ${t.prizes}</span><span class="damage-track"><span class="damage-fill" style="width:${t.damage/max*100}%"></span></span>`;b.onclick=()=>jumpTo(t.frame);return b;}));
   const usage=[...replay.usage].sort((a,b)=>(b.plays+b.abilities+b.attacks)-(a.plays+a.abilities+a.attacks));
   $('usage').innerHTML='<table class="usage-table"><thead><tr><th>カード / 使用者</th><th>使用</th><th>特性</th><th>ワザ</th></tr></thead><tbody>'+usage.map(c=>`<tr><td>${esc(cardName(c))}<br><span class="fine-print">${esc(replay.names[c.player])}</span></td><td>${c.plays}</td><td>${c.abilities}</td><td>${c.attacks}</td></tr>`).join('')+'</tbody></table>';
   $('warnings').querySelector('summary').textContent=`要確認 ${replay.warnings.length}件（不明な個体・原文の矛盾）`;
@@ -77,7 +80,8 @@ $('search').oninput=()=>{if(replay)renderTimeline();};$('kind').onchange=()=>{if
 $('closeCard').onclick=()=>$('cardDialog').close();$('cardDialog').addEventListener('click',e=>{if(e.target===$('cardDialog'))$('cardDialog').close();});
 $('download').onclick=()=>{const blob=new Blob([JSON.stringify({...replay,raw},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='ptcgl-analysis.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 document.addEventListener('keydown',e=>{if(!replay||e.target.closest('input,textarea,select,button,summary,[contenteditable]')||$('cardDialog').open)return;if(e.key==='ArrowLeft'){e.preventDefault();goto(cur-1);}if(e.key==='ArrowRight'){e.preventDefault();goto(cur+1);}if(e.code==='Space'){e.preventDefault();start();}});
-catalogReady=fetch('assets/catalog.json').then(r=>r.ok?r.json():null).then(data=>{if(data){setCatalog(data);if(Object.keys(data).length)$('assetStatus').textContent='日本語カード画像を読み込み済み。カードをクリックすると拡大します。';}}).catch(()=>{});
+const localCatalogReady=fetch('assets/catalog.json').then(r=>r.ok?r.json():null).then(data=>{if(data){setCatalog(data);if(Object.keys(data).length)$('assetStatus').textContent='日本語カード画像を読み込み済み。カードをクリックすると拡大します。';}}).catch(()=>{});
+catalogReady=Promise.all([localCatalogReady,fetch('data/japanese-index.json').then(r=>{if(!r.ok)throw Error('日本語辞書を読み込めません。');return r.json();}).then(setJapaneseIndex)]).catch(e=>error(e.message));
 if(new URLSearchParams(location.search).get('sample')==='1')$('sample').click();
 
 $('assetFolder').onchange=async e=>{

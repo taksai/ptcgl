@@ -18,7 +18,7 @@ test('CRLF and curly quotes preserve the demo result',()=>{
  assert.equal(r.frames.length,parseLog(sample).frames.length);assert.equal(r.winner,'Player A');
 });
 test('revealed hand cards and hidden opponent information are tracked separately',()=>{
- const r=parseLog(sample),initial=r.frames.find(f=>f.event.text==='Player A played (demo_1) Demo Pokémon A to the Active Spot.').current;
+ const r=parseLog(sample),initial=r.frames.find(f=>f.event.text==='Player A played (sv6_128) Dreepy to the Active Spot.').current;
  assert.equal(initial.players[0].hand.length,0);assert.equal(initial.players[0].handCount,6);
  assert.equal(initial.players[1].hand.length,6);assert.equal(initial.players[1].deckCount,47);
 });

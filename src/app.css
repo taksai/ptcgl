@@ -6,3 +6,8 @@ body{font-size:14px}button,input,select,textarea{font:inherit}button,.file-label
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 
 .assetbar{display:flex;align-items:center;gap:12px;margin-bottom:14px;color:var(--muted);font-size:12px;flex-wrap:wrap}.assetbar label{cursor:pointer}.assetbar span{flex:1;min-width:200px}
+
+.image-credit{color:var(--muted);font-size:11px;line-height:1.7;margin-top:16px}.image-credit a{color:var(--accent)}.card[data-image-state="unavailable"]::before{content:"日本語画像なし";position:absolute;top:30%;left:2px;right:2px;font-size:9px;color:var(--muted);text-align:center}.detail-image{float:none;display:block;width:min(100%,360px);max-width:100%;margin:12px auto}.detail-artwork{clear:both}
+@media(max-width:760px){.assetbar{font-size:11px}.field{grid-template-columns:85px minmax(350px,1fr) 85px;min-width:550px}.playback button{min-height:42px;min-width:40px}input,textarea,select{font-size:16px}#boardBody{overscroll-behavior-x:contain}.card .nm{font-size:10px}.card.mini .nm{font-size:9px}}
+
+.field-viewport{width:100%;min-width:0}@media(max-width:760px){.field-viewport{overflow:hidden}.field{max-width:none}}

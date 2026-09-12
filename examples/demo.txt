@@ -5,31 +5,31 @@ Player A decided to go second.
 Player B drew 7 cards for the opening hand.
 Player A drew 7 cards for the opening hand.
 - 7 drawn cards.
-   • (demo_1) Demo Pokémon A, (demo_2) Demo Pokémon B, (mee_2) Basic Fire Energy, (demo_3) Demo Item, (demo_4) Demo Evolution, (mee_2) Basic Fire Energy, (demo_3) Demo Item
-Player B played (demo_5) Demo Pokémon C to the Active Spot.
-Player A played (demo_1) Demo Pokémon A to the Active Spot.
+   • (sv6_128) Dreepy, (sv5_128) Dunsparce, (mee_2) Basic Fire Energy, (sv5_144) Buddy-Buddy Poffin, (sv6_129) Drakloak, (mee_2) Basic Fire Energy, (sv5_144) Buddy-Buddy Poffin
+Player B played (me1_8) Chikorita to the Active Spot.
+Player A played (sv6_128) Dreepy to the Active Spot.
 
 Player B's Turn
 Player B drew a card.
-Player B attached (mee_1) Basic Grass Energy to (demo_5) Demo Pokémon C in the Active Spot.
+Player B attached (mee_1) Basic Grass Energy to (me1_8) Chikorita in the Active Spot.
 Player B ended their turn.
 
 Player A's Turn
 Player A drew (mee_2) Basic Fire Energy.
-Player A played (demo_2) Demo Pokémon B to the Bench.
-Player A attached (mee_2) Basic Fire Energy to (demo_1) Demo Pokémon A in the Active Spot.
-Player A's (demo_1) Demo Pokémon A used Demo Attack on Player B’s (demo_5) Demo Pokémon C for 20 damage.
+Player A played (sv5_128) Dunsparce to the Bench.
+Player A attached (mee_2) Basic Fire Energy to (sv6_128) Dreepy in the Active Spot.
+Player A's (sv6_128) Dreepy used Demo Attack on Player B’s (me1_8) Chikorita for 20 damage.
 
 Player B's Turn
 Player B drew a card.
-Player B's (demo_5) Demo Pokémon C used Demo Attack on Player A’s (demo_1) Demo Pokémon A for 30 damage.
+Player B's (me1_8) Chikorita used Demo Attack on Player A’s (sv6_128) Dreepy for 30 damage.
 
 Player A's Turn
-Player A drew (demo_3) Demo Item.
-Player A evolved (demo_1) Demo Pokémon A to (demo_4) Demo Evolution in the Active Spot.
-Player A's (demo_4) Demo Evolution used Demo Attack on Player B’s (demo_5) Demo Pokémon C for 100 damage.
-Player B's (demo_5) Demo Pokémon C was Knocked Out!
-- 1 cards were discarded from Player B's (demo_5) Demo Pokémon C.
+Player A drew (sv5_144) Buddy-Buddy Poffin.
+Player A evolved (sv6_128) Dreepy to (sv6_129) Drakloak in the Active Spot.
+Player A's (sv6_129) Drakloak used Demo Attack on Player B’s (me1_8) Chikorita for 100 damage.
+Player B's (me1_8) Chikorita was Knocked Out!
+- 1 cards were discarded from Player B's (me1_8) Chikorita.
    • (mee_1) Basic Grass Energy
 Player A took a Prize card.
 A card was added to Player A's hand.

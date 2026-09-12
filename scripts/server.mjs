@@ -10,7 +10,7 @@ http.createServer(async (req,res) => {
     if (!['GET','HEAD'].includes(req.method)) { res.writeHead(405); res.end(); return; }
     const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
     const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
-    if (relative.split('/').some(s => s.startsWith('.')) || !/^(index\.html|src\/|assets\/|examples\/)/.test(relative)) throw Error();
+    if (relative.split('/').some(s => s.startsWith('.')) || !/^(index\.html|src\/|assets\/|examples\/|data\/)/.test(relative)) throw Error();
     const path = await realpath(resolve(root, relative));
     if (!path.startsWith(root + sep)) throw Error();
     const body = await readFile(path);
