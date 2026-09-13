@@ -1,13 +1,31 @@
 import {parseLog,summarizeTurns} from './parser.js';
-import {esc,setCatalog,setLocalImages,cardName,cardDetail,renderBoard} from './board.js';
+import {esc,setCatalog,setLocalImages,resetArtwork,cardName,cardDetail,renderBoard} from './board.js';
 import {setJapaneseIndex,japaneseMove} from './remote-cards.js';
 import {japaneseLog} from './japanese-log.js';
 import {readLocalAssets} from './local-assets.js';
 const published=!!document.querySelector('meta[name="ptcgl-published"]');
 const $=id=>document.getElementById(id);
-let replay=null,cur=0,timer=null,raw='',catalogReady=Promise.resolve();
+let replay=null,cur=0,timer=null,raw='',loading=false;
 const typeNames={setup:'セットアップ',turn:'ターン開始',play:'カードを使う',ability:'特性・効果',evolve:'進化',attach:'エネルギー・どうぐ',attack:'ワザ',counters:'ダメカン',ko:'きぜつ',prize:'サイド取得',draw:'手札に加える',search:'山札から場に出す',shuffle:'山札に戻す',discard:'トラッシュ',recover:'回収',retreat:'にげる',promote:'バトル場へ',coin:'コイン',result:'対戦終了',info:'進行',other:'未対応'};
-function error(message){$('error').textContent=message;$('error').hidden=!message;}
+function error(message){
+  $('error').textContent=message;$('error').hidden=!message;
+  if(message){$('error').focus({preventScroll:true});$('error').scrollIntoView({block:'center'});}
+}
+function busy(value){
+  loading=value;$('inputPane').setAttribute('aria-busy',String(value));
+  for(const id of ['analyze','sample','file'])$(id).disabled=value;
+  $('analyze').textContent=value?'解析中…':'ログを分析する →';
+  $('loadStatus').textContent=value?'ログを解析しています…':'';
+}
+function refreshCards(){
+  resetArtwork();
+  if(replay){renderTimeline();renderAnalysis();render();}
+}
+async function fetchJSON(url){
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),12000);
+  try{const response=await fetch(url,{signal:controller.signal});if(!response.ok)throw Error('読み込み失敗');return await response.json();}
+  finally{clearTimeout(timeout);}
+}
 function stop(){clearTimeout(timer);timer=null;$('play').textContent='再生';}
 function start(){
   if(!replay)return;if(timer){stop();return;}
@@ -56,9 +74,11 @@ function renderAnalysis(){
   $('warningList').replaceChildren(...replay.warnings.map(w=>{const b=document.createElement('button');b.className='warning-link';b.textContent=`${w.line}行: ${w.message}`;b.onclick=()=>jumpTo(w.frame);return b;}));
 }
 async function load(text){
-  stop();error('');
+  if(loading)return;
+  stop();error('');busy(true);
   try{
-    await catalogReady;
+    // Let the loading indicator paint; card metadata must never block analysis.
+    await new Promise(resolve=>setTimeout(resolve,0));
     const parsed=parseLog(text); // Keep an existing valid review when a new input is invalid.
     replay=parsed;raw=text;cur=replay.turns[0]?.frame ?? 0;
     $('workspace').hidden=false;$('empty').hidden=true;$('inputPane').hidden=true;$('closeInput').hidden=false;
@@ -66,8 +86,12 @@ async function load(text){
     const unsupported=replay.warnings.filter(w=>w.kind==='unsupported').length;
     $('matchMeta').textContent=`${replay.winner?'勝者 '+replay.winner:'勝敗未記録'} · ${replay.turns.length}ターン · ${replay.frames.length}行動 · 未対応 ${unsupported}行 · 要確認 ${replay.warnings.length}件`;
     $('perspective').innerHTML=replay.names.map((n,i)=>`<option value="${i}">${esc(n)}</option>`).join('');$('perspective').value=replay.perspective;
+    $('search').value='';$('kind').value='all';
     $('slider').max=replay.frames.length-1;renderTimeline();renderAnalysis();render();
+    $('logInput').blur();
+    requestAnimationFrame(()=>{$('boardPane').focus({preventScroll:true});$('boardPane').scrollIntoView({block:'start'});});
   }catch(e){error(e.message||'ログを読み込めませんでした。');}
+  finally{busy(false);}
 }
 $('analyze').onclick=()=>load($('logInput').value);
 $('openInput').onclick=()=>{$('inputPane').hidden=false;$('logInput').focus();};
@@ -80,14 +104,19 @@ $('search').oninput=()=>{if(replay)renderTimeline();};$('kind').onchange=()=>{if
 $('closeCard').onclick=()=>$('cardDialog').close();$('cardDialog').addEventListener('click',e=>{if(e.target===$('cardDialog'))$('cardDialog').close();});
 $('download').onclick=()=>{const blob=new Blob([JSON.stringify({...replay,raw},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='ptcgl-analysis.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 document.addEventListener('keydown',e=>{if(!replay||e.target.closest('input,textarea,select,button,summary,[contenteditable]')||$('cardDialog').open)return;if(e.key==='ArrowLeft'){e.preventDefault();goto(cur-1);}if(e.key==='ArrowRight'){e.preventDefault();goto(cur+1);}if(e.code==='Space'){e.preventDefault();start();}});
-const localCatalogReady=fetch('assets/catalog.json').then(r=>r.ok?r.json():null).then(data=>{if(data){setCatalog(data);if(Object.keys(data).length)$('assetStatus').textContent='日本語カード画像を読み込み済み。カードをクリックすると拡大します。';}}).catch(()=>{});
-catalogReady=Promise.all([localCatalogReady,fetch('data/japanese-index.json').then(r=>{if(!r.ok)throw Error('日本語辞書を読み込めません。');return r.json();}).then(setJapaneseIndex)]).catch(e=>error(e.message));
+// Names and artwork arrive independently, even on a slow mobile connection.
+if(!published)fetchJSON('assets/catalog.json').then(data=>{setCatalog(data);refreshCards();}).catch(()=>{});
+fetchJSON('data/japanese-index.json').then(data=>{
+  setJapaneseIndex(data);refreshCards();
+  $('assetStatus').textContent='日本語カード画像を自動表示します。タップで拡大できます。';
+}).catch(()=>{
+  $('assetStatus').textContent='日本語辞書を取得できませんでした。盤面は表示できます。通信を確認してページを開き直すと再取得します。';
+});
 if(new URLSearchParams(location.search).get('sample')==='1')$('sample').click();
 
 $('assetFolder').onchange=async e=>{
   const files=e.target.files;if(!files.length)return;
   try{
-    await catalogReady;
     const assets=await readLocalAssets(files);
     setCatalog(assets.catalog);setLocalImages(assets.images);
     $('cardDialog').close();

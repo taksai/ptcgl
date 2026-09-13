@@ -23,6 +23,7 @@ export function cardName(c){return reference(c)?.jp || japaneseName(c.name);}
 const el=(tag,cls,text)=>{const d=document.createElement(tag);d.className=cls;if(text!==undefined)d.textContent=text;return d;};
 const energyLabels={Grass:'草',Fire:'炎',Water:'水',Lightning:'雷',Psychic:'超',Fighting:'闘',Darkness:'悪',Metal:'鋼'};
 const artworkCache=new Map();
+export function resetArtwork(){artworkCache.clear();}
 function verifyImage(url){return new Promise(resolve=>{const im=new Image();im.referrerPolicy='no-referrer';const timer=setTimeout(()=>resolve(false),7000);im.onload=()=>{clearTimeout(timer);resolve(true);};im.onerror=()=>{clearTimeout(timer);resolve(false);};im.src=url;});}
 async function artwork(c){
   const local=reference(c),localUrl=local&&imageUrl(local);
